@@ -7,7 +7,8 @@ export function getConfsFromEnv(): RegistrarConf {
 	return {
 		service: {
 			port: PORT
-		}
+		},
+		registrarName: 'Ballots Registrar'
 	};
 }
 

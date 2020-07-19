@@ -15,6 +15,7 @@
  this program. If not, see <http://www.gnu.org/licenses/>. */
 
 import { stringOfB64Chars } from '../../lib-common/random-node';
+import { SignedLoad } from '../../lib-common/jwkeys';
 
 // XXX Hackaton note:
 // All data storage will be in memory for hackaton code, and it will be changed
@@ -36,9 +37,49 @@ export class OTTokens {
 		return token;
 	}
 
+	useForRegistration(regOTT: string): boolean {
+		const goodTill = this.unusedTokens.get(regOTT);
+		if ((goodTill === undefined) || (goodTill < Date.now())) {
+			return false;
+		} else {
+			this.unusedTokens.delete(regOTT);
+			return true;
+		}
+	}
+
 }
 Object.freeze(OTTokens.prototype);
 Object.freeze(OTTokens);
+
+
+export class BallotTriplets {
+
+	private lastBallotNum = 0;
+
+	private readonly triplets = new Map<number, SignedLoad>();
+
+	nextBallotNum(): number {
+		this.lastBallotNum += 1;
+		return this.lastBallotNum;
+	}
+
+	addTriplet(ballotNum: number, t: SignedLoad): void {
+		if (this.triplets.has(ballotNum)) { throw new Error(
+			`Setting ballot triplet for exiting number.`); }
+		this.triplets.set(ballotNum, t);
+	}
+
+	get(ballotNum: number): SignedLoad|undefined {
+		return this.triplets.get(ballotNum);
+	}
+
+	list(): number[] {
+		return Array.from(this.triplets.keys());
+	}
+
+}
+Object.freeze(BallotTriplets.prototype);
+Object.freeze(BallotTriplets);
 
 
 Object.freeze(exports);

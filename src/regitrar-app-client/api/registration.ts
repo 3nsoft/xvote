@@ -15,7 +15,8 @@
  this program. If not, see <http://www.gnu.org/licenses/>. */
 
 import { RegistrarPublicKeyUse } from "../../lib-voting/registrar";
-import { JsonKey } from "../../lib-common/jwkeys";
+import { JsonKey, SignedLoad } from "../../lib-common/jwkeys";
+import { VotingPublicKeyUse, EntryPublicKeyUse } from "../../lib-voting/voter";
 
 export const REG_OTT_HEADER = 'X-Registration-OTT';
 
@@ -27,13 +28,18 @@ export namespace registrarKey {
 
 	export type Reply = JsonKey<RegistrarPublicKeyUse>;
 
-	export const SC = {
+	export const SC = Object.freeze({
 		ok: 200,
-	};
-	Object.freeze(SC);
+	});
 
 }
 Object.freeze(registrarKey);
+
+export interface VoterInfo {
+	entry_key: JsonKey<EntryPublicKeyUse>;
+	voting_key: JsonKey<VotingPublicKeyUse>;
+	voter_info: any;
+}
 
 export namespace registerVoter {
 
@@ -41,21 +47,48 @@ export namespace registerVoter {
 
 	export const method = 'PUT';
 
-	// export interface Request {
-	// 	entry_key: 
-	// }
+	export type Request = VoterInfo;
 
-	export interface Reply {
-		registration_ott: string;
-	}
+	export type Reply = SignedLoad;
 
-	export const SC = {
+	export const SC = Object.freeze({
 		ok: 200,
 		notAllowed: 403
-	};
-	Object.freeze(SC);
+	});
 
 }
 Object.freeze(registerVoter);
+
+export namespace listBallots {
+
+	export const URL_END = '/ballots';
+
+	export const method = 'GET';
+
+	export type Reply = number[];
+
+	export const SC = Object.freeze({
+		ok: 200,
+	});
+
+}
+Object.freeze(listBallots);
+
+export namespace getBallot {
+
+	export const URL_END = '/ballot/:ballotNum';
+
+	export const method = 'GET';
+
+	export type Reply = SignedLoad;
+
+	export const SC = Object.freeze({
+		ok: 200,
+		notFound: 404
+	});
+
+}
+Object.freeze(getBallot);
+
 
 Object.freeze(exports);

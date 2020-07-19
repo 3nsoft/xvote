@@ -19,10 +19,13 @@ import { ServiceRunner, HttpConf } from "../lib-server/service-runner";
 import { makeRegistrarResources, RegistrarResources } from './resources/registrar';
 import * as adminApi from '../regitrar-app-client/api/registrar-admin';
 import * as regApi from '../regitrar-app-client/api/registration';
-import { emptyBody } from '../lib-server/middleware/body-parsers';
+import { emptyBody, json } from '../lib-server/middleware/body-parsers';
 import { makeRegistrationOTT } from './routes/admin/make-reg-ott';
 import { makeErrHandler } from '../lib-server/middleware/error-handler';
-import { registrarKey } from './routes/registration/registrar-key';
+import { registrarKey } from './routes/publication/registrar-key';
+import { registerVoter } from './routes/registration/register-voter';
+import { getBallot } from './routes/publication/get-ballot';
+import { listBallots } from './routes/publication/list-ballots';
 
 const ADMIN_PREFIX = '/admin';
 
@@ -34,6 +37,12 @@ export function makeApp(resources: RegistrarResources): express.Express {
 	app.get(regApi.registrarKey.URL_END,
 		registrarKey(resources.registrarKey));
 
+	app.get(regApi.listBallots.URL_END,
+		listBallots(resources.listBallots));
+
+	app.get(regApi.getBallot.URL_END,
+		getBallot(resources.getBallot));
+
 	app.post(ADMIN_PREFIX+adminApi.makeOneTimeRegistrationToken.URL_END,
 		emptyBody(),
 		makeRegistrationOTT(resources.makeRegistartionOTT));
@@ -43,7 +52,9 @@ export function makeApp(resources: RegistrarResources): express.Express {
 	// registration to provide cover even after TLS termination, allowing
 	// for use of big guys like CloudFront that can take DDoS pressures.
 
-
+	app.put(regApi.registerVoter.URL_END,
+		json('2kb'),
+		registerVoter(resources.registerVoter));
 
 	app.use(makeErrHandler((err, req): void => {
 		if (typeof err.status !== 'number') {
@@ -57,6 +68,7 @@ export function makeApp(resources: RegistrarResources): express.Express {
 
 export interface RegistrarConf {
 	service: HttpConf;
+	registrarName: string;
 }
 
 export class RegistrarApp extends ServiceRunner {
@@ -70,7 +82,7 @@ export class RegistrarApp extends ServiceRunner {
 
 	protected async makeApp(): Promise<express.Express> {
 
-		const resources = await makeRegistrarResources();
+		const resources = await makeRegistrarResources(this.conf.registrarName);
 
 		const app = makeApp(resources);
 
