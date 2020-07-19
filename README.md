@@ -1,2 +1,3 @@
-# xvote
-This is a system for secret voting, where voters count results themselves!
+# Servers
+
+Этот проект содержит в себе библиотеки для всех криптографических шагов, тестирования процессуальных шагов, и для серверных приложений.
